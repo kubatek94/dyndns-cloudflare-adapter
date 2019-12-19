@@ -17,15 +17,15 @@ var httpClient = &http.Client{Timeout: 10 * time.Second}
 
 type Client struct {
 	header http.Header
-	zones []string
+	zones  []string
 }
 
 type DNSRecord struct {
-	ID string `json:"id"`
-	Name string `json:"name"`
-	IP string `json:"content"`
-	Zone string `json:"zone_id"`
-	Proxied bool `json:"proxied"`
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	IP      string `json:"content"`
+	Zone    string `json:"zone_id"`
+	Proxied bool   `json:"proxied"`
 }
 
 func NewClient(email, key string) (*Client, error) {
@@ -33,7 +33,7 @@ func NewClient(email, key string) (*Client, error) {
 		header: http.Header{
 			"Content-Type": {"application/json"},
 			"X-Auth-Email": {email},
-			"X-Auth-Key": {key},
+			"X-Auth-Key":   {key},
 		},
 	}
 
@@ -48,7 +48,7 @@ func NewClient(email, key string) (*Client, error) {
 	}
 
 	if result, ok := data["result"]; ok {
-		result := result.([]interface {})
+		result := result.([]interface{})
 		zones := make([]string, 0, len(result))
 
 		for _, zone := range result {
@@ -82,9 +82,9 @@ func (cf *Client) FindDNSRecords(pattern *regexp.Regexp) ([]DNSRecord, error) {
 
 func (cf *Client) UpdateDNSRecord(record DNSRecord, ip string) error {
 	body, _ := json.Marshal(map[string]interface{}{
-		"type": "A",
+		"type":    "A",
 		"proxied": record.Proxied,
-		"name": record.Name,
+		"name":    record.Name,
 		"content": ip,
 	})
 
@@ -94,7 +94,7 @@ func (cf *Client) UpdateDNSRecord(record DNSRecord, ip string) error {
 	}
 	defer r.Body.Close()
 
-	if r.StatusCode / 100 != 2 {
+	if r.StatusCode/100 != 2 {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			return err
@@ -106,7 +106,7 @@ func (cf *Client) UpdateDNSRecord(record DNSRecord, ip string) error {
 }
 
 func (cf *Client) put(path string, body []byte) (*http.Response, error) {
-	r, err := http.NewRequest("PUT", baseURL + path, bytes.NewReader(body))
+	r, err := http.NewRequest("PUT", baseURL+path, bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (cf *Client) put(path string, body []byte) (*http.Response, error) {
 }
 
 func (cf *Client) get(path string) (*http.Response, error) {
-	r, err := http.NewRequest("GET", baseURL + path, nil)
+	r, err := http.NewRequest("GET", baseURL+path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func (cf *Client) get(path string) (*http.Response, error) {
 	return httpClient.Do(r)
 }
 
-func decodeRecords(body io.Reader) ([]DNSRecord, error)  {
+func decodeRecords(body io.Reader) ([]DNSRecord, error) {
 	decoder := json.NewDecoder(body)
 
 	var err error
@@ -153,7 +153,7 @@ func (cf *Client) fetchRecords(zone string, pattern *regexp.Regexp) ([]DNSRecord
 	}
 	defer r.Body.Close()
 
-	if r.StatusCode / 100 != 2 {
+	if r.StatusCode/100 != 2 {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			return nil, err
