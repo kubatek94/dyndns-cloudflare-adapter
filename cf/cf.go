@@ -25,6 +25,7 @@ type DNSRecord struct {
 	Name string `json:"name"`
 	IP string `json:"content"`
 	Zone string `json:"zone_id"`
+	Proxied bool `json:"proxied"`
 }
 
 func NewClient(email, key string) (*Client, error) {
@@ -80,8 +81,9 @@ func (cf *Client) FindDNSRecords(pattern *regexp.Regexp) ([]DNSRecord, error) {
 }
 
 func (cf *Client) UpdateDNSRecord(record DNSRecord, ip string) error {
-	body, _ := json.Marshal(map[string]string{
+	body, _ := json.Marshal(map[string]interface{}{
 		"type": "A",
+		"proxied": record.Proxied,
 		"name": record.Name,
 		"content": ip,
 	})
