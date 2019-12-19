@@ -70,6 +70,6 @@ func (u *updater) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	_, _ = w.Write([]byte("good"))
 	w.WriteHeader(200)
+	_, _ = w.Write([]byte("good"))
 }

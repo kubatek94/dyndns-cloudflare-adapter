@@ -1,9 +1,11 @@
 package cf
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"regexp"
 	"time"
@@ -78,7 +80,36 @@ func (cf *Client) FindDNSRecords(pattern *regexp.Regexp) ([]DNSRecord, error) {
 }
 
 func (cf *Client) UpdateDNSRecord(record DNSRecord, ip string) error {
-	return fmt.Errorf("updates not implemented yet")
+	body, _ := json.Marshal(map[string]string{
+		"type": "A",
+		"name": record.Name,
+		"content": ip,
+	})
+
+	r, err := cf.put(fmt.Sprintf("zones/%s/dns_records/%s", record.Zone, record.ID), body)
+	if err != nil {
+		return err
+	}
+	defer r.Body.Close()
+
+	if r.StatusCode / 100 != 2 {
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("Updating DNS record failed:\n%w", fmt.Errorf(string(body)))
+	}
+
+	return nil
+}
+
+func (cf *Client) put(path string, body []byte) (*http.Response, error) {
+	r, err := http.NewRequest("PUT", baseURL + path, bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	r.Header = cf.header
+	return httpClient.Do(r)
 }
 
 func (cf *Client) get(path string) (*http.Response, error) {
@@ -86,7 +117,6 @@ func (cf *Client) get(path string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	r.Header = cf.header
 	return httpClient.Do(r)
 }
@@ -115,11 +145,19 @@ func decodeRecords(body io.Reader) ([]DNSRecord, error)  {
 }
 
 func (cf *Client) fetchRecords(zone string, pattern *regexp.Regexp) ([]DNSRecord, error) {
-	r, err := cf.get(fmt.Sprintf("zones/%s/dns_records", zone))
+	r, err := cf.get(fmt.Sprintf("zones/%s/dns_records?type=A&per_page=100", zone))
 	if err != nil {
 		return nil, err
 	}
 	defer r.Body.Close()
+
+	if r.StatusCode / 100 != 2 {
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("Fetching DNS records failed:\n%w", fmt.Errorf(string(body)))
+	}
 
 	records, err := decodeRecords(r.Body)
 	if err != nil {
