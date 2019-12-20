@@ -1,6 +1,6 @@
 # dyndns-cloudflare-adapter
 HTTP server implementing the DynDNS.org [protocol](https://help.dyn.com/remote-access-api/perform-update/)
-allowing to update the CloudFront DNS records with dynamic IP directly from your router.
+allowing to update the CloudFlare DNS records with dynamic IP directly from your router.
 
 ## Building and running
 1. `docker build -t dyndns-cloudflare-adapter .`
