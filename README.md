@@ -29,8 +29,8 @@ config service 'myddns_ipv4'
     option cacert 'IGNORE'
     option force_interval '1'
     option force_unit 'days'
-    option lookup_host 'your-domain.com' # used to check if the current IP is already up to date (nslookup for DNS) - can be different from the domain below
-    option domain 'kubatek94.co.uk' # the regexp of domains to update
+    option lookup_host 'your-domain.com' # used to check if the current IP is already up to date (nslookup for DNS)
+    option domain '.+-domain\.com' # the regexp of domains to update
     option username 'HttpBasicUser'
     option password 'HttpBasicPass'
     option dns_server '1.1.1.1' # optional
