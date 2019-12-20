@@ -42,12 +42,20 @@ func NewClient(email, key string) (*Client, error) {
 		return nil, err
 	}
 
+	if r.StatusCode/100 != 2 {
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("Fetching zones failed:\n%w", fmt.Errorf(string(body)))
+	}
+
 	var data map[string]interface{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		return nil, err
 	}
 
-	if result, ok := data["result"]; ok {
+	if result, ok := data["result"]; ok && result != nil {
 		result := result.([]interface{})
 		zones := make([]string, 0, len(result))
 
@@ -60,7 +68,7 @@ func NewClient(email, key string) (*Client, error) {
 	}
 
 	if client.zones == nil || len(client.zones) == 0 {
-		return nil, fmt.Errorf("no zones found")
+		return nil, fmt.Errorf("No zones found")
 	}
 
 	return client, nil
