@@ -1,101 +1,59 @@
 package main
 
 import (
-	"github.com/ccding/go-stun/stun"
-	"github.com/kubatek94/dyndns-cloudflare-adapter/cf"
-	
-	// "log"
-	// "net/http"
-	// "regexp"
-	// "strings"
-	// "errors"
-	// "fmt"
+	"./cf"
+	"regexp"
 )
 
-type updater struct {
+type HostnamePatternError struct {
+	cause error
+}
+func (err HostnamePatternError) Error() string {
+	return "hostname pattern invalid"
+}
+func (err HostnamePatternError) Unwrap() error {
+	return err.cause
+}
+
+type DNSProviderError struct {
+	cause error
+	message string
+}
+func (err DNSProviderError) Error() string {
+	return err.message
+}
+func (err DNSProviderError) Unwrap() error {
+	return err.cause
+}
+
+type Updater struct {
 	cf *cf.Client
 }
 
-// var hostnameInvalidError = errors.New("Hostname pattern is not valid.")
+func (u Updater) UpdateDNS(newIP string, hostnamePattern string) error {
+	var err error
+	var records []cf.DNSRecord
+	var pattern *regexp.Regexp
 
+	if hostnamePattern != "" {
+		pattern, err = regexp.Compile(hostnamePattern)
+		if err != nil {
+			return HostnamePatternError{err}
+		}
+	}
 
-func (u *updater) UpdateDNS(newIP string, hostnamePattern string) error {
+	records, err = u.cf.FindDNSRecords(pattern)
+	if err != nil {
+		return DNSProviderError{err, "cannot find DNS records"}
+	}
+
+	for _, record := range records {
+		if record.IP != newIP {
+			if err = u.cf.UpdateDNSRecord(record, newIP); err != nil {
+				return DNSProviderError{err, "failed updating DNS record"}
+			}
+		}
+	}
 
 	return nil
-
-	// var err error
-	// var records []cf.DNSRecord
-
-	// if hostnamePattern != "" {
-	// 	pattern, err := regexp.Compile(hostnamePattern)
-	// 	if err != nil {
-	// 		fmt.Errorf("%w: hostname pattern invalid", err)
-
-	// 		log.Println(err)
-	// 		http.Error(w, "notfqdn", 400)
-	// 		return
-	// 	}
-
-	// 	records, err = u.cf.FindDNSRecords(pattern)
-	// } else {
-	// 	records, err = u.cf.FindDNSRecords(nil)
-	// }
-
-	// if err != nil {
-	// 	log.Println(err)
-	// 	http.Error(w, "nohost", 412)
-	// 	return
-	// }
-
-	// for _, record := range records {
-	// 	if record.IP != newIP {
-	// 		if err = u.UpdateDNSRecord(record, newIP); err != nil {
-	// 			log.Println(err)
-	// 			http.Error(w, "dnserr", 500)
-	// 			return
-	// 		}
-	// 	}
-	// }
 }
-
-// func (u *updater) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-// 	var err error
-// 	var records []cf.DNSRecord
-
-// 	q := r.URL.Query()
-// 	hostname := q.Get("hostname")
-// 	newIP := strings.TrimSpace(q.Get("myip"))
-// 	log.Println("Update DNS ", hostname, " to ", newIP)
-
-// 	if hostname != "" {
-// 		pattern, err := regexp.Compile(hostname)
-// 		if err != nil {
-// 			log.Println(err)
-// 			http.Error(w, "notfqdn", 400)
-// 			return
-// 		}
-
-// 		records, err = u.FindDNSRecords(pattern)
-// 	} else {
-// 		records, err = u.FindDNSRecords(nil)
-// 	}
-
-// 	if err != nil {
-// 		log.Println(err)
-// 		http.Error(w, "nohost", 412)
-// 		return
-// 	}
-
-// 	for _, record := range records {
-// 		if record.IP != newIP {
-// 			if err = u.UpdateDNSRecord(record, newIP); err != nil {
-// 				log.Println(err)
-// 				http.Error(w, "dnserr", 500)
-// 				return
-// 			}
-// 		}
-// 	}
-
-// 	w.WriteHeader(200)
-// 	_, _ = w.Write([]byte("good"))
-// }

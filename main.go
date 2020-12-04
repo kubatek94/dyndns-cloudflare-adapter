@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/kubatek94/dyndns-cloudflare-adapter/cf"
+	"./cf"
 	"log"
 	"net/http"
 	"os"
