@@ -7,13 +7,13 @@ import (
 	"strings"
 )
 
-func httpHandler (u Updater) http.HandlerFunc {
+func httpHandler(u Updater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
 		hostname := q.Get("hostname")
 		newIP := strings.TrimSpace(q.Get("myip"))
 
-		log.Println("Update DNS ", hostname, " to ", newIP)
+		log.Println("Update DNS", hostname, "to", newIP)
 
 		if err := u.UpdateDNS(newIP, hostname); err != nil {
 			log.Println(err)

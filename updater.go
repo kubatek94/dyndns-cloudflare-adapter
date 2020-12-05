@@ -1,13 +1,14 @@
 package main
 
 import (
-	"./cf"
+	"github.com/kubatek94/dyndns-cloudflare-adapter/cf"
 	"regexp"
 )
 
 type HostnamePatternError struct {
 	cause error
 }
+
 func (err HostnamePatternError) Error() string {
 	return "hostname pattern invalid"
 }
@@ -16,9 +17,10 @@ func (err HostnamePatternError) Unwrap() error {
 }
 
 type DNSProviderError struct {
-	cause error
+	cause   error
 	message string
 }
+
 func (err DNSProviderError) Error() string {
 	return err.message
 }
