@@ -52,7 +52,7 @@ func pickModeHandler() modeHandler {
 	port := httpFlagSet.String("port", "8080", "port of the http server")
 
 	stunFlagSet := flag.NewFlagSet("stun", flag.ExitOnError)
-	hostname := stunFlagSet.String("hostname", "*", "hostname pattern to match DNS records for update")
+	hp := stunFlagSet.String("hp", ".+", "hostname pattern to match DNS records for update")
 
 	if len(os.Args) < 2 {
 		usage()
@@ -67,7 +67,7 @@ func pickModeHandler() modeHandler {
 	case "stun":
 		stunFlagSet.Parse(os.Args[2:])
 		return func(ctx context.Context, u Updater) error {
-			return stunMode(ctx, u, *hostname)
+			return stunMode(ctx, u, *hp)
 		}
 	default:
 		usage()
@@ -119,8 +119,8 @@ func httpMode(ctx context.Context, u Updater, port string) error {
 	return nil
 }
 
-func stunMode(ctx context.Context, u Updater, hostname string) error {
-	stunUpdate(u, hostname)
+func stunMode(ctx context.Context, u Updater, hp string) error {
+	stunUpdate(u, hp)
 
 	ticker := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
@@ -130,7 +130,7 @@ func stunMode(ctx context.Context, u Updater, hostname string) error {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			stunUpdate(u, hostname)
+			stunUpdate(u, hp)
 		}
 	}
 }
