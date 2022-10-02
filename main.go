@@ -4,26 +4,26 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/kubatek94/dyndns-cloudflare-adapter/cf"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/kubatek94/dyndns-cloudflare-adapter/cf"
 )
 
 type modeHandler func(context.Context, Updater) error
 
 func main() {
-	email := os.Getenv("CF_API_EMAIL")
-	key := os.Getenv("CF_API_KEY")
+	token := os.Getenv("CF_API_TOKEN")
 
-	if email == "" || key == "" {
-		log.Fatalln("CF_API_EMAIL or CF_API_KEY missing from environment")
+	if token == "" {
+		log.Fatalln("CF_API_TOKEN missing from environment")
 	}
 
-	client, err := cf.NewClient(email, key)
+	client, err := cf.NewClient(token)
 	if err != nil {
 		log.Fatalln(err)
 	}

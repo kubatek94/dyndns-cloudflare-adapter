@@ -1,20 +1,19 @@
 # dyndns-cloudflare-adapter
-HTTP server implementing the DynDNS.org [protocol](https://help.dyn.com/remote-access-api/perform-update/),
+HTTP server implementing the [DynDNS.org protocol](https://help.dyn.com/remote-access-api/perform-update/),
 or a STUN daemon allowing to update the CloudFlare DNS records with a dynamic IP.
+
 
 ## Building
 `docker build -t dyndns-cloudflare-adapter .`
 
 
----
+## Pre-requisites
+You'll need to create a [Cloudflare API access token](https://dash.cloudflare.com/profile/api-tokens) with the `Zone.DNS` write scope.
 
 
 ## Running as daemon (with STUN IP detection)
+`docker run -it -e CF_API_TOKEN=YourApiToken -e HOSTNAME=.+\-domain\.co\.uk dyndns-cloudflare-adapter`
 
-`docker run -it -e CF_API_EMAIL=YourEmail -e CF_API_KEY=YourGlobalAPIKey -e HOSTNAME=.+\-domain\.co\.uk dyndns-cloudflare-adapter`
-
-
----
 
 ## Running as DynDNS server
 Configure your router to call the server using custom endpoint.
@@ -23,7 +22,7 @@ It needs to provide `hostname` and `myip` query string parameters:
  - `hostname` is a regexp that is used to select domain names from your account.
    Only domains matching the regexp will be updated with the provided IP.
 
-`docker run -it -p 8080:8080 -e CF_API_EMAIL=YourEmail -e CF_API_KEY=YourGlobalAPIKey dyndns-cloudflare-adapter`
+`docker run -it -p 8080:8080 CF_API_TOKEN=YourApiToken dyndns-cloudflare-adapter`
 
 
 ### Example OpenWrt config

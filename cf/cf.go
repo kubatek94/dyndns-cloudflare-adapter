@@ -21,19 +21,17 @@ type Client struct {
 }
 
 type DNSRecord struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	IP      string `json:"content"`
-	Zone    string `json:"zone_id"`
-	Proxied bool   `json:"proxied"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	IP   string `json:"content"`
+	Zone string `json:"zone_id"`
 }
 
-func NewClient(email, key string) (*Client, error) {
+func NewClient(token string) (*Client, error) {
 	client := &Client{
 		header: http.Header{
-			"Content-Type": {"application/json"},
-			"X-Auth-Email": {email},
-			"X-Auth-Key":   {key},
+			"Content-Type":  {"application/json"},
+			"Authorization": {"Bearer " + token},
 		},
 	}
 
@@ -90,13 +88,10 @@ func (cf *Client) FindDNSRecords(pattern *regexp.Regexp) ([]DNSRecord, error) {
 
 func (cf *Client) UpdateDNSRecord(record DNSRecord, ip string) error {
 	body, _ := json.Marshal(map[string]interface{}{
-		"type":    "A",
-		"proxied": record.Proxied,
-		"name":    record.Name,
 		"content": ip,
 	})
 
-	r, err := cf.put(fmt.Sprintf("zones/%s/dns_records/%s", record.Zone, record.ID), body)
+	r, err := cf.patch(fmt.Sprintf("zones/%s/dns_records/%s", record.Zone, record.ID), body)
 	if err != nil {
 		return err
 	}
@@ -113,8 +108,8 @@ func (cf *Client) UpdateDNSRecord(record DNSRecord, ip string) error {
 	return nil
 }
 
-func (cf *Client) put(path string, body []byte) (*http.Response, error) {
-	r, err := http.NewRequest("PUT", baseURL+path, bytes.NewReader(body))
+func (cf *Client) patch(path string, body []byte) (*http.Response, error) {
+	r, err := http.NewRequest("PATCH", baseURL+path, bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
