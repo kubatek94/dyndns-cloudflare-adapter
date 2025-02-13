@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/kubatek94/dyndns-cloudflare-adapter/cf"
 	"regexp"
+
+	"github.com/kubatek94/dyndns-cloudflare-adapter/cf"
 )
 
 type HostnamePatternError struct {
@@ -22,6 +23,9 @@ type DNSProviderError struct {
 }
 
 func (err DNSProviderError) Error() string {
+	if err.cause != nil {
+		return err.message + ": " + err.cause.Error()
+	}
 	return err.message
 }
 func (err DNSProviderError) Unwrap() error {
