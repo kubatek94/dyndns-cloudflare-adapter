@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"regexp"
 	"time"
@@ -24,7 +23,7 @@ type DNSRecord struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 	IP   string `json:"content"`
-	Zone string `json:"zone_id"`
+	Zone string
 }
 
 func NewClient(token string) (*Client, error) {
@@ -41,11 +40,11 @@ func NewClient(token string) (*Client, error) {
 	}
 
 	if r.StatusCode/100 != 2 {
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			return nil, err
 		}
-		return nil, fmt.Errorf("Fetching zones failed:\n%w", fmt.Errorf(string(body)))
+		return nil, fmt.Errorf("Fetching zones failed:\n%s", string(body))
 	}
 
 	var data map[string]interface{}
@@ -98,11 +97,11 @@ func (cf *Client) UpdateDNSRecord(record DNSRecord, ip string) error {
 	defer r.Body.Close()
 
 	if r.StatusCode/100 != 2 {
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			return err
 		}
-		return fmt.Errorf("Updating DNS record failed:\n%w", fmt.Errorf(string(body)))
+		return fmt.Errorf("Updating DNS record failed:\n%s", string(body))
 	}
 
 	return nil
@@ -157,11 +156,11 @@ func (cf *Client) fetchRecords(zone string, pattern *regexp.Regexp) ([]DNSRecord
 	defer r.Body.Close()
 
 	if r.StatusCode/100 != 2 {
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			return nil, err
 		}
-		return nil, fmt.Errorf("Fetching DNS records failed:\n%w", fmt.Errorf(string(body)))
+		return nil, fmt.Errorf("Fetching DNS records failed:\n%s", string(body))
 	}
 
 	records, err := decodeRecords(r.Body)
@@ -176,6 +175,7 @@ func (cf *Client) fetchRecords(zone string, pattern *regexp.Regexp) ([]DNSRecord
 	matchedRecords := make([]DNSRecord, 0, len(records))
 	for _, record := range records {
 		if pattern.MatchString(record.Name) {
+			record.Zone = zone
 			matchedRecords = append(matchedRecords, record)
 		}
 	}
